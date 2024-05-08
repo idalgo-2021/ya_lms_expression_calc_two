@@ -1,0 +1,21 @@
+{
+    "expressionsEndpoint": "/expressions",
+    "userRegistrationEndpoint": "/api/v1/register",
+    "userLoginEndpoint": "/api/v1/login",
+    "secretSignJwt": "yandex",
+    "expirationTimeSecondsJwt": 3600,
+    "serverAddress": "127.0.0.1:8081",
+    "maxLenghtRequestId": 50,
+    "usePrepareValidation": true,
+    "prepareValidationRegex": "^[0-9+\\-*/().^\\s]+$",
+    "maxLenghtExpression": 255,
+    "useLocalRequestIdCache": true,
+    "useLocalResultCache": true,
+    "dbConnectionConfig": {
+        "host": "127.0.0.1",
+        "port": 5432,
+        "user": "admin",
+        "password": "root",
+        "dbname": "postgres"
+    }
+}

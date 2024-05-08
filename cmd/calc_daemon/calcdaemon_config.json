@@ -1,0 +1,13 @@
+{
+    "serverAddress": "127.0.0.1",
+    "defaultPort": "9000",
+    "configEndpoint": "/config",
+    "managerGRPCServer": "127.0.0.1:8091",
+    "managerGRPCServerReconnectInterval": 3,
+    "echoRepeatInterval": 3,
+    "maxLenghtCalcQueue": 5,
+    "delayBasicLoop": 1,
+    "delayAddingLoop": 5,
+    "maxGoroutinesInCalcProcess": 3,
+    "additionalDelayInCalcOperation": 20
+}

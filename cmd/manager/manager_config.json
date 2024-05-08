@@ -1,0 +1,20 @@
+{
+    "grpcServerAddress": "127.0.0.1:8091",
+    "httpServerAddress": "127.0.0.1:8092",
+    "endpointCalcs": "/calcmanager",
+    "endpointDaemons": "/daemons",
+    "dbConnectionConfig": {
+        "host": "127.0.0.1",
+        "port": 5432,
+        "user": "admin",
+        "password": "root",
+        "dbname": "postgres"
+    },
+    "basicLoopDelaySeconds": 3,
+    "maxLenghtManagerQueue": 30,
+    "maxDurationForTask": 600,
+    "makeRPNInManager": true,
+    "daemonInactivityTimeout": 30,
+    "autoCheckIntervalOfActiveDaemons": 10,
+    "taskSendingToDaemonInterval": 1
+}

@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package proto_exchange; 
+
+option go_package = "ya_lms_expression_calc_two/grpc/proto_exchange"; 
+
+service CalcManager {
+    rpc Echo (EchoRequest) returns (EchoResponse);
+    rpc Result (ResultRequest) returns (ResultResponse);    
+}
+
+message EchoRequest {
+    string address = 1; 
+    string startTime = 2;
+    int32 capacity = 3;
+    int32 queue = 4;
+}
+
+message EchoResponse {
+    string status = 1; 
+}
+
+message ResultRequest {
+    string address = 1; 
+    int64 recordId = 2; 
+    int64 taskId = 3; 
+    bool isWrong = 4;
+    bool isFinished = 5;
+    string comment = 6;
+    string rpnExpression = 7;
+    double result = 8;
+}
+
+message ResultResponse {
+    string status = 1; 
+}
+
+
+service CalcDaemon {
+    rpc AddTask (AddTaskRequest) returns (AddTaskResponse);
+}
+
+message AddTaskRequest {
+    int64 recordId = 1; 
+    int64 taskId = 2; 
+    string Expression = 3;
+    string rpnExpression = 4;
+}
+
+message AddTaskResponse {
+    string status = 1; 
+}

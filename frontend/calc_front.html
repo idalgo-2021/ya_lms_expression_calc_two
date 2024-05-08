@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed calculator</title>
+    <style>
+        #requestContainers {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .requestContainer {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            height: 150px;
+
+        }
+
+        .responseContainer {
+            margin-top: 10px;
+        }
+
+        .removeButton {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+        }
+
+        input[type="text"] {
+            width: 300px;
+        }
+
+        #endpointAuth {
+            margin-top: 15px;
+        }
+
+        #endpointLogin {
+            margin-top: 2px;
+        }
+
+        #endpointExpressions {
+            margin-top: 2px;
+        }
+
+        #endpointManager {
+            margin-top: 2px;
+        }
+
+        #endpointStat {
+            margin-top: 2px;
+        }
+
+        #endpointDaemonSettings {
+            margin-top: 2px;
+        }
+
+        button[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Стили для вкладок */
+        .tab {
+            overflow: hidden;
+            border: 1px solid #4CAF50;
+            background-color: #C8E6C9;
+        }
+
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+        }
+
+        .tab button:hover {
+            background-color: #FFEB3B;
+        }
+
+        .tab button.active {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #4CAF50;
+            border-top: none;
+        }
+
+        .listContainer {
+            display: flex;
+            /* align-items: left;
+            margin-top: 10px; */
+            flex-direction: column;
+        }
+
+        .listContainer button {
+            margin-right: 10px;
+            /* margin-left: 5px;
+            margin-bottom: 5px; */
+        }
+
+        .list {
+            width: 200px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+        }
+
+        .table-container {
+            float: left;
+            /* margin-left: 20px; */
+            margin-bottom: 40px;
+            /* overflow: auto;
+            align-items: center;
+            justify-content: space-between; */
+        }
+
+        .button-container {
+            float: left;
+            margin-bottom: 10px;
+        }
+
+        #collapseButton {
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        #List1Table {
+            /* max-height: 300px;
+            overflow-y: auto; */
+            width: 100%;
+            margin-top: 10px;
+            display: none;
+            /* table-layout: fixed; */
+            table-layout: auto;
+
+
+        }
+
+        #tableContainer {
+            max-height: 0;
+            /* overflow: hidden; */
+            overflow: auto;
+            /* max-height: 300px; */
+            transition: max-height 0.5s ease-in-out;
+
+        }
+
+
+        .blockCalcContainer {
+            display: flex;
+            justify-content: space-between;
+            height: 400px;
+        }
+
+        .listCalcContainer {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            width: 80%;
+
+        }
+
+        .listCalcContainerBottom {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            width: 100%;
+            font-weight: bold;
+
+        }
+
+        .listCalcContainer p {
+            font-weight: bold;
+
+        }
+
+        .subContainerQueue {
+            width: 100%;
+            font-weight: normal;
+        }
+
+
+        .subContainerStatistics {
+            width: 100%;
+            font-weight: normal;
+
+        }
+
+        /* ------------------------- */
+
+        input[type="daemonAddress"] {
+            width: 400px;
+            padding-right: 25px;
+        }
+
+        .daemonAddress-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .daemon_label-container {
+            display: flex;
+            flex-direction: column;
+            padding-right: 10px;
+            margin-right: 10px;
+        }
+
+        .daemon-input-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+
+
+        input[type="login"] {
+            width: 130px;
+            padding-right: 25px;
+        }
+
+        input[type="password"] {
+            width: 130px;
+            padding-right: 25px;
+        }
+
+        .auth-container {
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 10px;
+        }
+
+        .label-container,
+        .input-container,
+        .auth-button-container {
+            display: flex;
+            flex-direction: column;
+            padding-right: 5px;
+        }
+
+        .result-container {
+            font-size: 10px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Distributed calculator от @Federico_manchinini</h1>
+
+    <div class="auth-container">
+        <div class="label-container">
+            <label for="login">Login:</label>
+            <label for="password">Password:</label>
+        </div>
+        <div class="input-container">
+            <input type="login" id="loginInput" placeholder="Enter your login">
+            <input type="password" id="passwordInput" placeholder="Enter your password">
+        </div>
+        <div class="auth-button-container">
+            <button onclick="userRegistration()">Registration</button>
+            <button onclick="userLogin()">Login</button>
+        </div>
+        <div class="result-container"></div>
+
+    </div>
+
+
+    <div class="tab">
+        <button class="tablinks" onclick="openCity(event, 'Calculator')">Калькулятор</button>
+        <button class="tablinks" onclick="openCity(event, 'СписокВычислений')">Список вычислений</button>
+        <button class="tablinks" onclick="openCity(event, 'НастройкиВычислителя')">Настройки вычислителя</button>
+    </div>
+
+
+
+    <div id="Calculator" class="tabcontent">
+        <h3>Калькулятор</h3>
+        <p>Введите выражения для вычисления: </p>
+
+        <div id="requestContainers">
+            <!-- Контейнеры для наборов полей ввода и кнопок -->
+        </div>
+
+        <button onclick="addRequest()">+</button>
+
+        <div id="endpointAuth"></div>
+        <div id="endpointLogin"></div>
+        <div id="endpointExpressions"></div>
+
+    </div>
+
+
+
+    <div id="СписокВычислений" class="tabcontent">
+
+        <h3>Активные Демоны</h3>
+        <div class="listContainer">
+            <div class="button-container">
+                <button id="buttonDaemon1" onclick="executeAndShowTableDaemons('DaemonsTable')">Выполнить
+                    запрос</button>
+                <!-- <button onclick="toggleTable()" id="toggleButton">Свернуть таблицу</button> -->
+            </div>
+
+            <div class="table-container" id="daemonsContainer">
+                <table id="DaemonsTable">
+                    <thead>
+                        <tr>
+                            <th>address</th>
+                            <th>startTime</th>
+                            <th>capacity</th>
+                            <th>queue</th>
+                            <th>lastEchoTime</th>
+                            <th>delay</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+            <div id="Manager_endpointDaemons"></div>
+        </div>
+
+
+        <h3>Список вычислений</h3>
+        <div class="listContainer">
+
+            <div class="title-container">
+                <p>Таблица зарегистрированных вычислительных заданий</p>
+
+                <div class="button-container">
+                    <button id="button1" onclick="executeAndShowTable('List1Table')">Выполнить запрос</button>
+                    <button onclick="toggleTable()" id="toggleButton">Свернуть таблицу</button>
+                </div>
+
+                <div class="table-container" id="tableContainer">
+                    <table id="List1Table">
+                        <thead>
+                            <tr>
+                                <th>task_id</th>
+                                <th>login</th>
+                                <th>expression</th>
+                                <th>result</th>
+                                <th>status</th>
+                                <th>is_wrong</th>
+                                <th>is_finished</th>
+                                <th>comment</th>
+                                <th>calc_duration</th>
+                            </tr>
+                        </thead>
+
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        <div id="Manager_endpointCalcs"></div>
+    </div>
+
+    <div id="НастройкиВычислителя" class="tabcontent">
+        <h3>Настройки вычислителя</h3>
+
+        <div class="daemonAddress-container">
+            <div class="daemon_label-container">
+                <label for="daemonAddress">Укажите endpoint Демона-вычислителя(с адресом и портом)</label>
+            </div>
+            <div class="daemon-input-container">
+                <input type="daemonAddress" id="daemonAddress" placeholder="http://address:port/endpoint">
+            </div>
+        </div>
+
+
+
+
+        <button id="button1" onclick="getCalcStatistics()">Выполнить запрос</button>
+
+        <div class="blockCalcContainer">
+
+            <div class="listCalcContainer">
+                <p>Настройки вычислителя</p>
+                <div id="container" style="height: 90%; width:90%; border: grey;">
+                    <textarea id="settingsContainer" rows="10" style="width: 99%; height: 80%;"></textarea>
+                    <button onclick="updateSettings()">Обновить настройки</button>
+                    <div id="statusMessage"></div>
+                </div>
+
+            </div>
+
+            <div class="listCalcContainer">
+                <p>Статистика вычислителя</p>
+                <div class="subContainerStatistics" id="statisticsContainer">
+                    <!-- Дополнительный подконтейнер или элемент управления -->
+                    <span>...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- <p>Очередь вычислителя</p> -->
+        <div class="listCalcContainerBottom">
+            <p>Очередь вычислителя</p>
+            <div class="subContainerQueue" id="queueContainer">
+                <!-- Дополнительный подконтейнер или элемент управления -->
+                <span>...</span>
+            </div>
+
+        </div>
+
+        <div id="endpointDaemonStat"></div>
+        <div id="endpointDaemonSettings"></div>
+
+    </div>
+
+
+
+
+
+    </div>
+
+    <script>
+        // Глобальные переменные
+        var jwtToken;
+        var dispatcherAuthEndpoint = "http://localhost:8081/api/v1/register";
+        var dispatcherLoginEndpoint = "http://localhost:8081/api/v1/login";
+        var dispatcherExpressionEndpoint = "http://localhost:8081/expressions";
+
+        var ManagerServerAddress_endpointCalcs = "http://localhost:8092/calcmanager";
+        var ManagerServerAddress_endpointDaemons = "http://localhost:8092/daemons";
+
+        var containerRequestIDs = {};
+
+        // Выводим значение глобальных переменных под заголовком страницы
+        document.getElementById('endpointAuth').innerHTML = 'Endpoint Диспетчера(регистрация): ' + dispatcherAuthEndpoint;
+        document.getElementById('endpointLogin').innerHTML = 'Endpoint Диспетчера(Вход): ' + dispatcherLoginEndpoint;
+        document.getElementById('endpointExpressions').innerHTML = 'Endpoint выражений(Диспетчер): ' + dispatcherExpressionEndpoint;
+        document.getElementById('Manager_endpointCalcs').innerHTML = 'Endpoint Менеджера(endpointCalcs): ' + ManagerServerAddress_endpointCalcs;
+        document.getElementById('Manager_endpointDaemons').innerHTML = 'Endpoint Менеджера(endpointDaemons): ' + ManagerServerAddress_endpointDaemons;
+
+
+        // document.getElementById('endpointDaemonStat').innerHTML = 'Endpoint Демона(статистика): ' + DaemonStatisticsServerAddress;
+        // document.getElementById('endpointDaemonSettings').innerHTML = 'Endpoint Демона(конфиг-ия): ' + DaemonSettingsServerAddress;
+
+        var requestContainers = document.getElementById('requestContainers');
+        var requests = [];
+
+
+        function userRegistration() {
+            var login = document.getElementById('loginInput').value;
+            var password = document.getElementById('passwordInput').value;
+
+            document.querySelector('.result-container').textContent = '';
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', dispatcherAuthEndpoint, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            var data = {
+                login: login,
+                password: password
+            };
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    console.log('Registration successful');
+                    document.querySelector('.result-container').textContent = xhr.responseText;
+                } else {
+                    console.error('Registration failed:', xhr.status, xhr.statusText);
+                    document.querySelector('.result-container').textContent = 'Error: ' + xhr.status + ' ' + xhr.statusText + '\n' + xhr.responseText;
+                }
+            };
+
+            xhr.onerror = function () {
+                console.error('Network Error');
+                document.querySelector('.result-container').textContent = 'Network Error';
+
+            };
+
+            xhr.send(JSON.stringify(data));
+        }
+
+        function userLogin() {
+            var login = document.getElementById('loginInput').value;
+            var password = document.getElementById('passwordInput').value;
+
+            document.querySelector('.result-container').textContent = '';
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', dispatcherLoginEndpoint, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            var data = {
+                login: login,
+                password: password
+            };
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    console.log('Login successful');
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        jwtToken = response.token;
+                        document.querySelector('.result-container').textContent = 'Login successful. JWT Token: ' + jwtToken;
+                    } catch (error) {
+                        console.error('Error parsing JSON response:', error);
+                        document.querySelector('.result-container').textContent = 'Error parsing JSON response: ' + error.message;
+                    }
+                } else {
+                    console.error('Login failed:', xhr.status, xhr.statusText);
+                    document.querySelector('.result-container').textContent = 'Error: ' + xhr.status + ' ' + xhr.statusText + '\n' + xhr.responseText;
+                }
+            };
+
+            xhr.onerror = function () {
+                console.error('Network Error');
+                document.querySelector('.result-container').textContent = 'Network Error';
+            };
+
+            xhr.send(JSON.stringify(data));
+        }
+
+
+
+
+        function executeAndShowTableDaemons(tableId) {
+            clearTable(tableId)
+            getActiveDaemons(tableId);
+
+            // showTable(tableId);
+        }
+
+
+        function executeAndShowTable(tableId) {
+
+            // Очистка таблицы списка вычислений
+            clearTable(tableId)
+
+            // Выполнение запроса
+            getRegisteredTask(tableId);
+
+            // Разворачивание таблицы
+            showTable(tableId);
+        }
+
+        function clearTable(tableId) {
+            // Находим таблицу по её id
+            // var table = document.getElementById("List1Table");
+            var table = document.getElementById(tableId);
+
+            // Если таблица найдена
+            if (table) {
+                // Получаем все строки таблицы, кроме заголовка
+                var rows = table.getElementsByTagName('tr');
+
+                // Перебираем все строки, начиная с 1, чтобы пропустить заголовок
+                for (var i = 1; i < rows.length; i++) {
+                    // Удаляем каждую строку
+                    table.deleteRow(i);
+
+                    // После удаления строки, длина массива rows уменьшается на 1,
+                    // поэтому нужно уменьшить счетчик цикла на 1
+                    i--;
+                }
+            }
+        }
+
+        function toggleTable() {
+            var tableContainer = document.getElementById('tableContainer');
+            var toggleButton = document.getElementById('toggleButton');
+
+            if (tableContainer.style.maxHeight === '0px' || tableContainer.style.maxHeight === '') {
+                showTable();
+                toggleButton.textContent = 'Свернуть таблицу';
+            } else {
+                tableContainer.style.maxHeight = '0';
+                toggleButton.textContent = 'Развернуть таблицу';
+            }
+        }
+
+        function showTable(tableId) {
+            var tableContainer = document.getElementById('tableContainer');
+            tableContainer.style.maxHeight = '2000px';
+
+            // Покажем таблицу, когда она разворачивается
+            // document.getElementById('List1Table').style.display = 'table';
+            document.getElementById(tableId).style.display = 'table';
+        }
+
+        function addRequest() {
+            // Создаем новый контейнер для набора полей ввода и кнопок
+            var container = document.createElement('div');
+            container.classList.add('requestContainer'); // Добавляем класс стиля
+
+            // Генерируем идентификатор запроса для данного контейнера
+            var requestID = generateUniqueID();
+            // Сохраняем идентификатор запроса для данного контейнера
+            container.dataset.requestID = requestID;
+
+            // Создаем поле ввода для URL
+            var expressionInput = document.createElement('input');
+            expressionInput.type = 'text';
+            expressionInput.placeholder = 'Введи алгебраическое выражение';
+            expressionInput.maxLength = 255;
+
+            // Создаем кнопку для выполнения POST-запроса
+            var button1 = document.createElement('button');
+            button1.textContent = 'Вычислить';
+            button1.onclick = function () {
+                pushTaskToCalculate(expressionInput, resultContainer, button1, button2);
+            };
+            button1.dataset.requestID = requestID;
+
+            // Создаем кнопку для выполнения GET-запроса
+            var button2 = document.createElement('button');
+            button2.textContent = 'Получить результат';
+            button2.onclick = function () {
+                checkResult(expressionInput, resultContainer);
+            };
+            button2.dataset.requestID = requestID;
+
+            // Создаем кнопку удаления для текущего контейнера
+            var removeButton = document.createElement('button');
+            removeButton.textContent = 'X';
+            removeButton.classList.add('removeButton');
+            removeButton.onclick = function () {
+                removeRequest(container);
+            };
+
+            // Добавляем поля ввода и кнопки в контейнер
+            container.appendChild(expressionInput);
+            container.appendChild(button1);
+            container.appendChild(button2);
+            container.appendChild(removeButton);
+
+            // Создаем контейнер для вывода результата
+            var resultContainer = document.createElement('div');
+            resultContainer.classList.add('responseContainer');
+            container.appendChild(resultContainer);
+
+            // Добавляем контейнер в основной контейнер
+            requestContainers.appendChild(container);
+
+            // Добавляем новый набор в массив
+            requests.push({
+                expressionInput: expressionInput,
+                resultContainer: resultContainer,
+                container: container,
+                button1: button1,
+                button2: button2
+            });
+
+            updateButtonState(button1, button2, expressionInput);
+        }
+
+        function updateButtonState(button1, button2, expressionInput) {
+            var taskID = expressionInput.closest('.requestContainer').dataset.requestID;
+
+            if (taskID) {
+                button1.disabled = false;
+                button2.disabled = true;
+            } else {
+                // Иначе делаем кнопку "Выполнить" доступной, а "Получить результат" недоступной
+                button1.disabled = true;
+                button2.disabled = false;
+            }
+        }
+
+        function removeRequest(container) {
+            // Удаляем контейнер и соответствующий набор из массива
+            requestContainers.removeChild(container);
+            var index = requests.findIndex(item => item.container === container);
+            if (index !== -1) {
+                requests.splice(index, 1);
+            }
+        }
+
+        function generateUniqueID() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function pushTaskToCalculate(expressionInput, resultContainer, button1, button2) {
+            var expression = expressionInput.value;
+            var requestID = expressionInput.closest('.requestContainer').dataset.requestID;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', dispatcherExpressionEndpoint, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('X-Request-ID', requestID);
+            xhr.setRequestHeader('Authorization', "Bearer " + jwtToken);
+
+            var data = {
+                expression: expression
+            };
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    var response = JSON.parse(xhr.responseText);
+
+                    expressionInput.value = response.task_id;
+                    button1.disabled = true;
+                    button2.disabled = false;
+                    expressionInput.disabled = true;
+
+                    resultContainer.innerHTML = 'Response: ' + xhr.status + ' ' + xhr.statusText + '<br>' + xhr.responseText;
+
+                    // Программное нажатие кнопки "Получить результат"
+                    checkResult(expressionInput, resultContainer, button2);
+                } else {
+                    resultContainer.innerHTML = 'Error: ' + xhr.status + ' ' + xhr.statusText + '<br>' + xhr.responseText;
+                }
+            };
+
+            xhr.onerror = function () {
+                resultContainer.innerHTML = 'Network Error';
+            };
+
+            xhr.send(JSON.stringify(data));
+        }
+
+        function checkResult(expressionInput, resultContainer, button2) {
+            var url = expressionInput.value;
+            var xhr = new XMLHttpRequest();
+            var requestID = expressionInput.closest('.requestContainer').dataset.requestID;
+
+            url = dispatcherExpressionEndpoint + "?task_id=" + url;
+            xhr.open('GET', url, true);
+            xhr.setRequestHeader('Authorization', "Bearer " + jwtToken);
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+
+                        var resultHTML = '';
+                        // Если выполнение завершено, очищаем интервал 
+                        if (response.is_finished === true) {
+                            if (response.is_wrong === false) {
+                                resultHTML += '<b><span style="color: green;">Expression:</b> ' + response.expression + '<br>';
+                                resultHTML += '<b><span style="color: green;">Status:</b> ' + response.status + '<br>';
+                                resultHTML += '<b><span style="color: green;">Comment:</b> ' + response.comment + '<br></span> ';
+                                resultHTML += '<b><span style="color: green;">Result:</b> ' + response.result + '<br></span> ';
+                                resultHTML += '<br><span style="color: grey;">Response: ' + xhr.status + ' ' + xhr.statusText + ', Raw: ' + xhr.responseText + '</span>';
+                            } else {
+                                resultHTML += '<b><span style="color: red;">Expression:</b> ' + response.expression + '<br>';
+                                resultHTML += '<b><span style="color: red;">Status:</b> ' + response.status + '<br>';
+                                resultHTML += '<b><span style="color: red;">Comment:</b> ' + response.comment + '<br></span> ';
+                                resultHTML += '<b><span style="color: red;">Result:</b> ' + response.result + '<br></span> ';
+                                resultHTML += '<br><span style="color: grey;">Response: ' + xhr.status + ' ' + xhr.statusText + ', Raw: ' + xhr.responseText + '</span>';
+                            }
+
+                        } else {
+                            resultHTML += '<b>Expression:</b> ' + response.expression + '<br>';
+                            resultHTML += '<b>Status:</b> ' + response.status + '<br>';
+                            resultHTML += '<b>Comment:</b> ' + response.comment + '<br>';
+                            resultHTML += '<b>Result:</b> ' + response.result + '<br></span> ';
+                            resultHTML += '<br><span style="color: grey;">Response: ' + xhr.status + ' ' + xhr.statusText + ', Raw: ' + xhr.responseText + '</span>';
+
+                            // Повторный вызов checkResult через таймер
+                            setTimeout(function () {
+                                checkResult(expressionInput, resultContainer, button2);
+                            }, 2000);
+                        }
+                        resultContainer.innerHTML = resultHTML;
+                    } catch (error) {
+                        console.error('Error parsing JSON response:', error);
+                    }
+                } else {
+                    resultContainer.innerHTML = 'Error: ' + xhr.status + ' ' + xhr.statusText + '<br>' + xhr.responseText;
+                }
+            };
+
+            xhr.onerror = function () {
+                resultContainer.innerHTML = 'Network Error';
+            };
+
+            xhr.send();
+        }
+
+
+        function getCalcStatistics() {
+
+
+            // document.getElementById("settingsContainer").innerHTML = '';
+            document.getElementById("settingsContainer").value = '';
+
+            document.getElementById("statisticsContainer").innerHTML = '';
+            document.getElementById("queueContainer").innerHTML = '';
+
+
+
+            statusMessage.textContent = '';
+
+            var xhr = new XMLHttpRequest();
+
+            const daemonAddressInput = document.getElementById('daemonAddress');
+            const daemonAddressValue = daemonAddressInput.value;
+            xhr.open('GET', daemonAddressValue, true);
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    var response = JSON.parse(xhr.responseText);
+
+                    // Обновление контейнеров с данными
+                    updateContainer("settingsContainer", response.current_settings);
+                    updateContainer("statisticsContainer", response);
+
+                    // Отображение очереди в виде JSON-строки
+                    document.getElementById("queueContainer").innerHTML = "<pre>" + JSON.stringify(response.current_tasks, null, 2) + "</pre>";
+
+
+
+                } else {
+                    console.error('Failed to fetch calc statistics:', xhr.status, xhr.statusText);
+                }
+            };
+
+            xhr.onerror = function () {
+                console.error('Network Error');
+            };
+
+            xhr.send();
+
+        }
+
+        function updateContainer(containerId, data) {
+            var container = document.getElementById(containerId);
+            container.innerHTML = "";
+
+
+            if (containerId === "statisticsContainer") {
+                // Обработка заполнения для контейнера "statisticsContainer"
+                for (var key in data) {
+                    if (key === "avg_time_per_tasks" || key === "last_run_time" || key === "qnt_current_tasks" || key === "qntProcessedTasks" || key === "uptime") {
+                        var p = document.createElement("p");
+
+                        var strong = document.createElement("strong");
+                        strong.textContent = "   - " + key + ": ";
+                        p.appendChild(strong);
+
+                        var span = document.createElement("span");
+                        span.textContent = data[key];
+                        span.style.fontWeight = "normal";
+                        p.appendChild(span);
+
+                        container.appendChild(p);
+
+                    }
+                }
+
+            } else if (containerId === "settingsContainer") {
+
+                // for (var key in data) {
+                //     var p = document.createElement("p");
+                //     p.innerHTML = "<strong>" + key + ":</strong> " + data[key];
+                //     container.appendChild(p);
+                // }
+                container.value = JSON.stringify(data, null, 2);
+
+            }
+
+
+
+
+
+
+
+        }
+
+
+        function updateSettings() {
+
+            // Получаем содержимое текстового поля
+            var settingsText = document.getElementById("settingsContainer").value;
+
+            // var textareaContent = document.getElementById("settingsContainer").value;
+            // var textareaContent = encodeURIComponent(settingsText);
+
+            var statusMessage = document.getElementById("statusMessage");
+
+            var xhr = new XMLHttpRequest();
+            // xhr.open('POST', DaemonSettingsServerAddress, true);
+
+            const daemonAddressInput = document.getElementById('daemonAddress');
+            const daemonAddressValue = daemonAddressInput.value;
+            xhr.open('POST', daemonAddressValue, true);
+
+
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    statusMessage.textContent = 'Настройки успешно обновлены';
+                    statusMessage.style.color = 'green';
+                } else {
+                    statusMessage.textContent = 'Ошибка обновления настроек';
+                    statusMessage.style.color = 'red';
+                }
+            };
+
+            xhr.onerror = function () {
+                statusMessage.textContent = 'Ошибка сети';
+                statusMessage.style.color = 'red';
+            };
+
+            // Отправляем данные в виде JSON-строки
+            // xhr.send(JSON.stringify({ content: textareaContent }));
+            xhr.send(JSON.stringify({ settings: settingsText }));
+            // xhr.send(JSON.stringify({ settings: textareaContent }));
+        }
+
+
+
+
+        function getActiveDaemons(tableId) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', ManagerServerAddress_endpointDaemons, true);
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    var response = JSON.parse(xhr.responseText);
+                    populateTable(response, tableId);
+                } else {
+                    console.error('Failed to fetch registered tasks:', xhr.status, xhr.statusText);
+                }
+            };
+
+            xhr.onerror = function () {
+                console.error('Network Error');
+            };
+
+            xhr.send();
+        }
+
+
+
+
+
+
+        function getRegisteredTask(tableId) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', ManagerServerAddress_endpointCalcs, true);
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    var response = JSON.parse(xhr.responseText);
+                    populateTable(response, tableId);
+                } else {
+                    console.error('Failed to fetch registered tasks:', xhr.status, xhr.statusText);
+                }
+            };
+
+            xhr.onerror = function () {
+                console.error('Network Error');
+            };
+
+            xhr.send();
+        }
+
+        function populateTable(data, tableId) {
+            var table = document.getElementById(tableId);
+
+            // Очищаем текущее содержимое таблицы
+            table.innerHTML = '';
+
+            // Создаем заголовок таблицы
+            var thead = document.createElement('thead');
+            var headerRow = document.createElement('tr');
+
+            for (var key in data[0]) {
+                var th = document.createElement('th');
+                th.textContent = key;
+                headerRow.appendChild(th);
+            }
+
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Создаем тело таблицы
+            var tbody = document.createElement('tbody');
+
+            for (var i = 0; i < data.length; i++) {
+                var row = document.createElement('tr');
+
+                for (var key in data[i]) {
+                    var td = document.createElement('td');
+                    td.textContent = data[i][key];
+                    row.appendChild(td);
+                }
+
+                tbody.appendChild(row);
+            }
+
+            table.appendChild(tbody);
+        }
+
+        function openCity(evt, cityName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(cityName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        // Открываем первую вкладку по умолчанию
+        document.getElementsByClassName("tablinks")[0].click();
+    </script>
+
+</body>
+
+</html>
